@@ -297,6 +297,12 @@ class viewer:
         msg = struct.pack('b', 6) + _pack_string(os.path.abspath(filename))
         self.__send(msg)
 
+    def send_image(self):
+        # Idea is to save image as image bytes and send it over to unity
+        msg = struct.pack('b', 11) 
+        # + _pack_string(os.path.abspath(filename))
+        self.__send(msg)
+
     def play(self, poses, ts=[], tlim=[-numpy.inf, numpy.inf], repeat=False,
              interp='cubic_natural'):
         """

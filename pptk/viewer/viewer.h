@@ -511,6 +511,20 @@ class Viewer : public QWindow, protected OpenGLFuncs {
         printScreen(filename);
         break;
       }
+      case 11: {  // send 
+        // receive length of property name string
+        quint64 stringLength;
+        comm::receiveBytes((char*)&stringLength, sizeof(quint64),
+                           clientConnection);
+
+        // receive property name string
+        std::string filename(stringLength, 'x');
+        comm::receiveBytes((char*)&filename[0], stringLength, clientConnection);
+        //printScreen(filename);
+        
+        sendScreen(IP, port)
+        break;
+      }
       case 7: {  // wait for enter
         // save current connection socket and return
         _socket_waiting_on_enter_key = clientConnection;
@@ -736,6 +750,46 @@ class Viewer : public QWindow, protected OpenGLFuncs {
     // expect absolute filename path
     QString qstr_filename = QString::fromStdString(filename);
     image.save(qstr_filename);
+    delete[] pixels;
+    _context->doneCurrent();
+  }
+
+// Maybe parameters would be port and IP Address so that the image can be sent to Unity  
+  void sendScreen(std::string filename) {
+    _context->makeCurrent(this);
+    int w = width() * this->devicePixelRatio();
+    int h = height() * this->devicePixelRatio();
+    GLubyte* pixels = new GLubyte[4 * w * h];
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glReadBuffer(GL_FRONT);  // otherwise will read back buffer
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    QImage image(w, h, QImage::Format_ARGB32);
+    for (int i = 0; i < h; i++) {
+      for (int j = 0; j < w; j++) {
+        int index = j * 4 + (h - i - 1) * w * 4;
+        QColor color(pixels[index + 0],
+                     pixels[index + 1],
+                     pixels[index + 2],
+                     pixels[index + 3]);
+        image.setPixel(j, i, color.rgba());
+      }
+    }
+
+    // Save the image data in PNG format
+    QByteArray imageData;
+    QBuffer buffer(&imageData);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
+
+    // Send the image data as a UDP packet to the specified address and port
+    QHostAddress address("127.0.0.1");  // Replace with the IP address of the receiving end
+    quint16 port = 8001;  // Replace with the port number on the receiving end
+    socket.writeDatagram(imageData, address, port);
+    // UNNECESSARY
+    // expect absolute filename path
+    // QString qstr_filename = QString::fromStdString(filename);
+    // image.save(qstr_filename);
     delete[] pixels;
     _context->doneCurrent();
   }
