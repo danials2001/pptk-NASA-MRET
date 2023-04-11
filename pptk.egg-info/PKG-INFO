@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: pptk
+Version: 0.1.1
+Summary: A Python package for facilitating point cloud processing.
+Home-page: UNKNOWN
+Author: HERE Europe B.V.
+License: MIT
+Project-URL: Source, https://github.com/heremaps/pptk
+Platform: UNKNOWN
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering
+Classifier: License :: OSI Approved :: MIT License
+License-File: LICENSE
+
+UNKNOWN
+
